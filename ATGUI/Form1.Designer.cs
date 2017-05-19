@@ -83,14 +83,14 @@
             // openFileDialog1
             // 
             this.openFileDialog1.DefaultExt = "smd";
-            this.openFileDialog1.Filter = "All SMD Files|*.smd";
+            this.openFileDialog1.Filter = "All SMD Files|*.smd|All Bin Files|*.bin";
             this.openFileDialog1.Title = "AutomataTranslator - Open";
             this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
             // 
             // saveFileDialog1
             // 
             this.saveFileDialog1.DefaultExt = "smd";
-            this.saveFileDialog1.Filter = "All SMD Files|*.smd";
+            this.saveFileDialog1.Filter = "All SMD Files|*.smd|All Bin Files|*.bin";
             this.saveFileDialog1.Title = "AutomataTranslator - Save";
             this.saveFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.saveFileDialog1_FileOk);
             // 

@@ -19,11 +19,22 @@ namespace ATGUI {
             openFileDialog1.ShowDialog();
         }
 
+        bool BinMode = false;
+
+        private BinTL BinEditor;
         private SMDManager Editor;
         private void openFileDialog1_FileOk(object sender, CancelEventArgs e) {
             listBox1.Items.Clear();
-            Editor = new SMDManager(File.ReadAllBytes(openFileDialog1.FileName));
-            string[] strs = Editor.Import();
+            BinMode = openFileDialog1.FileName.ToLower().EndsWith(".bin");
+            string[] strs;
+            if (BinMode) {
+                BinEditor = new BinTL(File.ReadAllBytes(openFileDialog1.FileName));
+                strs = BinEditor.Import();
+            } else {
+                Editor = new SMDManager(File.ReadAllBytes(openFileDialog1.FileName));
+                strs = Editor.Import();
+            }
+            
             foreach (string str in strs)
                 listBox1.Items.Add(str);
         }
@@ -40,7 +51,13 @@ namespace ATGUI {
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e) {
             try {
                 int i = listBox1.SelectedIndex;
-                Text = "ID: " + i + "/" + listBox1.Items.Count;
+                if (BinMode) {
+
+                    const string Mask = "ID: {0}/{1} |Detect Lang: {2} |Is Replace Target: {3}";
+                    Language Lang = BinEditor.LanguageMap[BinEditor.IndexMap[i]];
+                    Text = string.Format(Mask, i, listBox1.Items.Count, Lang.ToString(), BinEditor.ReplacesTargets.Contains(Lang) ? "Yes" : "No");
+                } else
+                    Text = "ID: " + i + "/" + listBox1.Items.Count;
                 textBox1.Text = listBox1.Items[i].ToString();
             }
             catch { }
@@ -50,10 +67,13 @@ namespace ATGUI {
             string[] Strs = new string[listBox1.Items.Count];
             for (int i = 0; i < Strs.Length; i++)
                 Strs[i] = listBox1.Items[i].ToString();
-            File.WriteAllBytes(saveFileDialog1.FileName, Editor.Export(Strs));
+            
+            File.WriteAllBytes(saveFileDialog1.FileName, BinMode ?  BinEditor.Export(Strs) : Editor.Export(Strs));
+            MessageBox.Show("File Saved.", "AutomataTranslator", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e) {
+            saveFileDialog1.FilterIndex = BinMode ? 2 : 1;
             saveFileDialog1.ShowDialog();
         }
     }
