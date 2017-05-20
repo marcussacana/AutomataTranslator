@@ -5,12 +5,14 @@ using System.Text;
 using AdvancedBinary;
 using System.IO;
 
-namespace AutomataTranslator {    
-     public class MRubyStringEditor {
+namespace AutomataTranslator {
+    public class MRubyStringEditor {
         byte[] Script;
         int StringStartPos;
         int StringEndPos;
+        public int StringTableLength {get { return StringEndPos - StringStartPos; } }
         RiteHdr Hdr;
+        public bool AssertLength = true;
         public MRubyStringEditor(byte[] Script) {
             this.Script = Script;
         }
@@ -61,22 +63,26 @@ namespace AutomataTranslator {
             byte[] Sufix = new byte[Script.Length - StringEndPos];
             Array.Copy(Script, StringEndPos, Sufix, 0, Sufix.Length);
 
-            int StringTableLen = StringEndPos - StringStartPos;
-            
+            int FreeSpace = CalculateLength(Strings) - StringTableLength;
+            bool FillMode = false;
             byte[] StringTable = new byte[0];
             for (int i = 0; i < Strings.Length; i++) {
+                if (Strings[i] == " ")
+                    FillMode = true;
                 byte[] String = Encoding.UTF8.GetBytes(Strings[i]);
-                if (!(i+1 < Strings.Length)) { //if is the last string
+                if (FillMode && Strings[i] == " ") { //if is a blank string
                     const byte SPACE = 0x20;
                     //while the output file is smaller than the input
-                    while ((StringTable.Length + String.Length + 3) - StringTableLen < 0)//+3 = str offset len
+                    while (FreeSpace++ < 0)//
                         Append(ref String, new byte[] { SPACE });
                 }
                 Append(ref StringTable, UInt24(Tools.Reverse(String.Length)));
                 Append(ref StringTable, String);
             }
 
-            int Diff = StringTable.Length - StringTableLen;
+            int Diff = StringTable.Length - StringTableLength;
+            if (AssertLength && Diff != 0)
+                throw new Exception("Failed to Protect the file length");
             Hdr.Unk1DataOffset = (ushort)(Hdr.Unk1DataOffset + Diff);
             Hdr.UnkOff = (ushort)(Hdr.UnkOff + Diff);
             Hdr.ScriptSize = (ushort)(Prefix.Length + Sufix.Length + StringTable.Length);
@@ -90,7 +96,12 @@ namespace AutomataTranslator {
 
             return OutScript;
         }
-
+        public int CalculateLength(string[] Strings) {
+            int result = Strings.Length * 3;
+            foreach (string str in Strings)
+                result += Encoding.UTF8.GetByteCount(str);
+            return result;
+        }
         private byte[] UInt24(int Value) {
             byte[] Bytes = BitConverter.GetBytes(Value);
             return new byte[] { Bytes[1], Bytes[2], Bytes[3] };
