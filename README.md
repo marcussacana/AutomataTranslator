@@ -1,4 +1,4 @@
-### AutomataTranslator (SMD/BIN Editor) - v2.0
+### AutomataTranslator (SMD/BIN/TMD Editor) - v3.4
 [![Build Status](https://travis-ci.org/ForumHulp/pageaddon.svg?branch=master)](http://vnx.uvnworks.com)
 
 A DLL Library tool to allow you write your own string editor in C#
