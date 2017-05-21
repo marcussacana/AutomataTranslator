@@ -64,33 +64,33 @@
             this.openToolStripMenuItem,
             this.saveToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(182, 84);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(121, 56);
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(120, 26);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(120, 26);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // openFileDialog1
             // 
             this.openFileDialog1.DefaultExt = "smd";
-            this.openFileDialog1.Filter = "All SMD Files|*.smd|All Bin Files|*.bin";
+            this.openFileDialog1.Filter = "All SMD Files|*.smd|All Bin Files|*.bin|All Tmd Files|*.tmd";
             this.openFileDialog1.Title = "AutomataTranslator - Open";
             this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
             // 
             // saveFileDialog1
             // 
             this.saveFileDialog1.DefaultExt = "smd";
-            this.saveFileDialog1.Filter = "All SMD Files|*.smd|All Bin Files|*.bin";
+            this.saveFileDialog1.Filter = "All SMD Files|*.smd|All Bin Files|*.bin|All Tmd Files|*.tmd";
             this.saveFileDialog1.Title = "AutomataTranslator - Save";
             this.saveFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.saveFileDialog1_FileOk);
             // 

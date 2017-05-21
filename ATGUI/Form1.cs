@@ -20,18 +20,25 @@ namespace ATGUI {
         }
 
         bool BinMode = false;
+        bool TmdMode = false;
 
         private BinTL BinEditor;
         private SMDManager Editor;
+        private TMDEditor TmdEditor;
         private void openFileDialog1_FileOk(object sender, CancelEventArgs e) {
             listBox1.Items.Clear();
             BinMode = openFileDialog1.FileName.ToLower().EndsWith(".bin");
+            TmdMode = openFileDialog1.FileName.ToLower().EndsWith(".tmd");
+            byte[] Script = File.ReadAllBytes(openFileDialog1.FileName);
             string[] strs;
-            if (BinMode) {
-                BinEditor = new BinTL(File.ReadAllBytes(openFileDialog1.FileName));
+            if (TmdMode) {
+                TmdEditor = new TMDEditor(Script);
+                strs = TmdEditor.Import();
+            } else if (BinMode) {
+                BinEditor = new BinTL(Script);
                 strs = BinEditor.Import();
             } else {
-                Editor = new SMDManager(File.ReadAllBytes(openFileDialog1.FileName));
+                Editor = new SMDManager(Script);
                 strs = Editor.Import();
             }
             
@@ -68,7 +75,7 @@ namespace ATGUI {
             for (int i = 0; i < Strs.Length; i++)
                 Strs[i] = listBox1.Items[i].ToString();
             
-            File.WriteAllBytes(saveFileDialog1.FileName, BinMode ?  BinEditor.Export(Strs) : Editor.Export(Strs));
+            File.WriteAllBytes(saveFileDialog1.FileName, TmdMode ? TmdEditor.Export(Strs) : (BinMode ?  BinEditor.Export(Strs) : Editor.Export(Strs)));
             MessageBox.Show("File Saved.", "AutomataTranslator", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 

@@ -33,7 +33,7 @@ namespace AdvancedBinary {
     /// <param name="StructInstance">Struct instance reference</param>
     /// <return>Struct Instance</return>
     public delegate dynamic FieldInvoke(Stream Stream, bool FromReader, dynamic StructInstance);
-    
+
     /// <summary>
     /// Ignore Struct Field
     /// </summary>
@@ -53,6 +53,7 @@ namespace AdvancedBinary {
     /// </summary>
     public class PString : Attribute {
         public string PrefixType = Const.UINT32;
+        public bool UnicodeLength;
     }
 
     public class FString : Attribute {
@@ -85,7 +86,7 @@ namespace AdvancedBinary {
         public const string STRUCT = "StructField";
         public const string IGNORE = "Ignore";
     }
-    
+
     static class Tools {
         /*
         public static dynamic GetAttributePropertyValue<T>(T Struct, string FieldName, string AttributeName, string PropertyName) {
@@ -141,18 +142,18 @@ namespace AdvancedBinary {
         }
 
         public static dynamic GetAttributePropertyValue(FieldInfo Fld, string AttributeName, string PropertyName) {
-                foreach (Attribute tmp in Fld.GetCustomAttributes(true)) {
-                    Type Attrib = tmp.GetType();
-                    if (Attrib.Name != AttributeName)
+            foreach (Attribute tmp in Fld.GetCustomAttributes(true)) {
+                Type Attrib = tmp.GetType();
+                if (Attrib.Name != AttributeName)
+                    continue;
+                foreach (FieldInfo Field in Attrib.GetFields()) {
+                    if (Field.Name != PropertyName)
                         continue;
-                    foreach (FieldInfo Field in Attrib.GetFields()) {
-                        if (Field.Name != PropertyName)
-                            continue;
-                        return Field.GetValue(tmp);
-                    }
-                    throw new Exception("Property Not Found");
+                    return Field.GetValue(tmp);
                 }
-                throw new Exception("Attribute Not Found");
+                throw new Exception("Property Not Found");
+            }
+            throw new Exception("Attribute Not Found");
         }
 
         public static long GetStructLength<T>(T Struct) {
@@ -202,7 +203,7 @@ namespace AdvancedBinary {
         }
         public static void ReadStruct(byte[] Array, ref object Struct, bool IsBigEnddian = false, Encoding Encoding = null) {
             MemoryStream Stream = new MemoryStream(Array);
-            StructReader Reader = new StructReader(Stream, IsBigEnddian,Encoding);
+            StructReader Reader = new StructReader(Stream, IsBigEnddian, Encoding);
             Reader.ReadStruct(ref Struct);
             Reader.Close();
             Stream?.Close();
@@ -223,7 +224,7 @@ namespace AdvancedBinary {
 
         private bool BigEndian = false;
         private Encoding Encoding;
-        public StructWriter(Stream Input, bool BigEndian = false,Encoding Encoding = null) : base(Input) {
+        public StructWriter(Stream Input, bool BigEndian = false, Encoding Encoding = null) : base(Input) {
             if (Encoding == null)
                 Encoding = Encoding.UTF8;
             this.BigEndian = BigEndian;
@@ -238,7 +239,7 @@ namespace AdvancedBinary {
         }
 
         private void WriteStruct(Type type, ref object Instance) {
-            FieldInfo[] fields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (FieldInfo field in fields) {
                 if (HasAttribute(field, Const.IGNORE))
                     break;
@@ -308,49 +309,57 @@ namespace AdvancedBinary {
                     break;
                 case StringStyle.PString:
                     byte[] Arr = Encoding.GetBytes(Value);
+
                     string Prefix = Tools.GetAttributePropertyValue(Field, Const.PSTRING, "PrefixType");
+                    bool UnicodeLength = Tools.GetAttributePropertyValue(Field, Const.PSTRING, "UnicodeLength");
+
+
+                    long Length = Arr.LongLength;
+                    if (UnicodeLength)
+                        Length /= 2;
+
                     switch (Prefix) {
                         case Const.INT16:
                             if (BigEndian)
-                                base.Write((short)Tools.Reverse((short)Arr.Length));
+                                base.Write((short)Tools.Reverse((short)Length));
                             else
-                                base.Write((short)Arr.Length);
+                                base.Write((short)Length);
                             break;
                         case Const.UINT16:
                             if (BigEndian)
-                                base.Write((ushort)Tools.Reverse((ushort)Arr.Length));
+                                base.Write((ushort)Tools.Reverse((ushort)Length));
                             else
-                                base.Write((ushort)Arr.Length);
+                                base.Write((ushort)Length);
                             break;
                         case Const.UINT8:
                             if (BigEndian)
-                                base.Write((byte)Tools.Reverse((byte)Arr.Length));
+                                base.Write((byte)Tools.Reverse((byte)Length));
                             else
-                                base.Write((byte)Arr.Length);
+                                base.Write((byte)Length);
                             break;
                         case Const.INT8:
                             if (BigEndian)
-                                base.Write((sbyte)Tools.Reverse((sbyte)Arr.Length));
+                                base.Write((sbyte)Tools.Reverse((sbyte)Length));
                             else
-                                base.Write((sbyte)Arr.Length);
+                                base.Write((sbyte)Length);
                             break;
                         case Const.INT32:
                             if (BigEndian)
-                                base.Write((int)Tools.Reverse((int)Arr.Length));
+                                base.Write((int)Tools.Reverse((int)Length));
                             else
-                                base.Write(Arr.Length);
+                                base.Write((int)Length);
                             break;
                         case Const.UINT32:
                             if (BigEndian)
-                                base.Write((uint)Tools.Reverse((uint)Arr.LongLength));
+                                base.Write((uint)Tools.Reverse((uint)Length));
                             else
-                                base.Write((uint)Arr.LongLength);
+                                base.Write((uint)Length);
                             break;
                         case Const.INT64:
                             if (BigEndian)
-                                base.Write((long)Tools.Reverse(Arr.LongLength));
+                                base.Write((long)Tools.Reverse(Length));
                             else
-                                base.Write((long)Arr.Length);
+                                base.Write(Length);
                             break;
                         default:
                             throw new Exception("Invalid Data Type");
@@ -376,7 +385,7 @@ namespace AdvancedBinary {
 
         private bool BigEndian = false;
         private Encoding Encoding;
-        public StructReader(Stream Input, bool BigEndian = false,Encoding Encoding = null) : base(Input) {
+        public StructReader(Stream Input, bool BigEndian = false, Encoding Encoding = null) : base(Input) {
             if (Encoding == null)
                 Encoding = Encoding.UTF8;
             this.BigEndian = BigEndian;
@@ -391,7 +400,7 @@ namespace AdvancedBinary {
         }
 
         private void ReadStruct(Type type, ref object Instance) {
-            FieldInfo[] fields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             for (int i = 0; i < fields.Length; i++) {
                 FieldInfo field = fields[i];
                 if (Tools.HasAttribute(field, Const.IGNORE))
@@ -464,7 +473,7 @@ namespace AdvancedBinary {
                                 Value = Invoker;
                                 if (Invoker == null)
                                     break;
-                                Instance = Invoker.Invoke(BaseStream, true, Instance);                                
+                                Instance = Invoker.Invoke(BaseStream, true, Instance);
                                 break;
                             }
                             throw new Exception("Unk Struct Field: " + field.FieldType.ToString());
@@ -504,6 +513,7 @@ namespace AdvancedBinary {
                     if (Info != null) {
                         long Len;
                         string Prefix = Tools.GetAttributePropertyValue(Info, Const.PSTRING, "PrefixType");
+                        bool UnicodeLength = Tools.GetAttributePropertyValue(Info, Const.PSTRING, "UnicodeLength");
                         switch (Prefix) {
                             case Const.INT16:
                                 if (BigEndian)
@@ -550,6 +560,8 @@ namespace AdvancedBinary {
                             default:
                                 throw new Exception("Invalid Data Type");
                         }
+                        if (UnicodeLength)
+                            Len *= 2;
                         if (Len > BaseStream.Length - BaseStream.Position)
                             throw new Exception("Invalid Length");
                         byte[] Buff = new byte[Len];
