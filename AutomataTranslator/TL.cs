@@ -117,7 +117,9 @@ namespace AutomataTranslator {
             int SpaceRequired = Editor.CalculateLength(NewStrs) - Editor.StringTableLength;
             if (SpaceRequired < 0 && RemoveLangs) {
                 for (int i = 0; i < Strs.Length - 5; i++) {
-                    if (NewStrs[i].Contains("_") || NewStrs[i].Contains("@") || NewStrs[i].Contains("#") || (LanguageMap[i] != Language.JP && LanguageMap[i] != Language.CH && LanguageMap[i] != Language.KO && NewStrs[i].ToUpper() == NewStrs[i]) || TargetLang == LanguageMap[i])
+                    if (NewStrs[i].Contains("_") || NewStrs[i].Contains("@") || NewStrs[i].Contains("#"))
+                        continue;
+                    if ((LanguageMap[i] != Language.JP && LanguageMap[i] != Language.CH && LanguageMap[i] != Language.KO && NewStrs[i].ToUpper() == NewStrs[i]) || TargetLang == LanguageMap[i])
                         continue;
                     else {
                         while (SpaceRequired++ < 0)

@@ -83,9 +83,9 @@ namespace AutomataTranslator {
             int Diff = StringTable.Length - StringTableLength;
             if (AssertLength && Diff != 0)
                 throw new Exception("Failed to Protect the file length");
-            Hdr.Unk1DataOffset = (ushort)(Hdr.Unk1DataOffset + Diff);
-            Hdr.UnkOff = (ushort)(Hdr.UnkOff + Diff);
-            Hdr.ScriptSize = (ushort)(Prefix.Length + Sufix.Length + StringTable.Length);
+            Hdr.Unk1DataOffset = (uint)(Hdr.Unk1DataOffset + Diff);
+            Hdr.UnkOff = (uint)(Hdr.UnkOff + Diff);
+            Hdr.ScriptSize = (uint)(Prefix.Length + Sufix.Length + StringTable.Length);
             Tools.BuildStruct(ref Hdr, true, Encoding.UTF8).CopyTo(Prefix, 0);
 
             byte[] OutScript = new byte[0];
@@ -133,8 +133,7 @@ namespace AutomataTranslator {
         internal string Signature;
 
         internal ushort Checksum;
-        private ushort unk1;
-        internal ushort ScriptSize;
+        internal uint ScriptSize;
 
         [FString(Length = 0xC)]
         internal string UnkSignature2;
