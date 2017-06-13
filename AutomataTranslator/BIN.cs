@@ -10,7 +10,7 @@ namespace AutomataTranslator {
         byte[] Script;
         int StringStartPos;
         int StringEndPos;
-        public int StringTableLength {get { return StringEndPos - StringStartPos; } }
+        public int StringTableLength { get { return StringEndPos - StringStartPos; } }
         RiteHdr Hdr;
         public bool AssertLength = true;
         public MRubyStringEditor(byte[] Script) {
@@ -37,23 +37,42 @@ namespace AutomataTranslator {
             Reader.BaseStream.Position = StringStartPos;
             List<string> Strings = new List<string>();
             while (true) {
-                //Get Length
-                byte[] LenBuff = new byte[3];
-                Reader.Read(LenBuff, 0, LenBuff.Length);
-                Array.Reverse(LenBuff, 0, LenBuff.Length);
-                byte[] dw = new byte[4];
-                LenBuff.CopyTo(dw, 0);
-                int Len = BitConverter.ToInt32(dw, 0);
-                if (Len == 0)
-                    break;
-                //Get Content
-                byte[] Buffer = new byte[Len];
-                Reader.Read(Buffer, 0, Buffer.Length);
-                Strings.Add(Encoding.UTF8.GetString(Buffer));
+                string String = ReadString(Reader.BaseStream);
+                if (String == string.Empty) {
+                    long Pos = Reader.BaseStream.Position;
+                    bool Result = false;
+                    try {
+                        string tmp = ReadString(Reader.BaseStream);
+                        if (!(tmp == string.Empty || tmp.Contains("_")))
+                            Result = true;
+                    }
+                    catch { }
+                    Reader.BaseStream.Position = Pos;
+                    if (!Result)
+                        break;
+                }
+                Strings.Add(String);
             }
             StringEndPos = (int)Reader.BaseStream.Position - 3;
             Reader.Close();
             return Strings.ToArray();
+        }
+
+        public string ReadString(Stream Reader) {
+            //Get Length
+            byte[] LenBuff = new byte[3];
+            Reader.Read(LenBuff, 0, LenBuff.Length);
+            Array.Reverse(LenBuff, 0, LenBuff.Length);
+            byte[] dw = new byte[4];
+            LenBuff.CopyTo(dw, 0);
+            int Len = BitConverter.ToInt32(dw, 0);
+            if (Len == 0)
+                return string.Empty;
+
+            //Get Content
+            byte[] Buffer = new byte[Len];
+            Reader.Read(Buffer, 0, Buffer.Length);
+            return Encoding.UTF8.GetString(Buffer);
         }
 
         public byte[] Export(string[] Strings) {
