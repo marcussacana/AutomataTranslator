@@ -38,7 +38,7 @@ namespace AutomataTranslator {
             List<string> Strings = new List<string>();
             while (true) {
                 string String = ReadString(Reader.BaseStream);
-                if (String == string.Empty) {
+                if (String == string.Empty || String.Contains("_")) {
                     long Pos = Reader.BaseStream.Position;
                     bool Result = false;
                     try {
